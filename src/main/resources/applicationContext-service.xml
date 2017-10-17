@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<bean id="employeeService" class="com._520it.wms.service.impl.EmployeeServiceImpl">
+		<property name="employeeMapper" ref="employeeMapper"></property>
+	</bean>
+
+	<bean id="departmentService" class="com._520it.wms.service.impl.DepartmentServiceImpl">
+		<property name="departmentMapper" ref="departmentMapper"></property>
+	</bean>
+
+	<bean id="permissionService" class="com._520it.wms.service.impl.PermissionServiceImpl">
+		<property name="permissionMapper" ref="permissionMapper"></property>
+	</bean>
+
+	<bean id="roleService" class="com._520it.wms.service.impl.RoleServiceImpl">
+		<property name="roleMapper" ref="roleMapper"></property>
+	</bean>
+
+    <bean id="brandService" class="com._520it.wms.service.impl.BrandServiceImpl">
+        <property name="brandMapper" ref="brandMapper"></property>
+    </bean>
+    <bean id="clientService" class="com._520it.wms.service.impl.ClientServiceImpl">
+        <property name="clientMapper" ref="clientMapper"></property>
+    </bean>
+    <bean id="chartService" class="com._520it.wms.service.impl.ChartServiceImpl">
+        <property name="chartMapper" ref="chartMapper"></property>
+    </bean>
+    <bean id="depotService" class="com._520it.wms.service.impl.DepotServiceImpl">
+        <property name="depotMapper" ref="depotMapper"></property>
+    </bean>
+    <bean id="supplierService" class="com._520it.wms.service.impl.SupplierServiceImpl">
+        <property name="supplierMapper" ref="supplierMapper"></property>
+    </bean>
+    <bean id="productService" class="com._520it.wms.service.impl.ProductServiceImpl">
+        <property name="productMapper" ref="productMapper"></property>
+    </bean>
+    <bean id="productStockService" class="com._520it.wms.service.impl.ProductStockServiceImpl">
+        <property name="productStockMapper" ref="productStockMapper"></property>
+    </bean>
+    <bean id="orderBillService" class="com._520it.wms.service.impl.OrderBillServiceImpl">
+        <property name="orderBillMapper" ref="orderBillMapper"></property>
+
+    </bean>
+    <bean id="stockIncomeBillService" class="com._520it.wms.service.impl.StockIncomeBillServiceImpl">
+        <property name="stockIncomeBillMapper" ref="stockIncomeBillMapper"></property>
+        <property name="productStockService" ref="productStockService"></property>
+    </bean>
+    <bean id="stockOutcomeBillService" class="com._520it.wms.service.impl.StockOutcomeBillServiceImpl">
+        <property name="stockOutcomeBillMapper" ref="stockOutcomeBillMapper"></property>
+        <property name="productStockService" ref="productStockService"></property>
+        <property name="saleAccountService" ref="saleAccountService"></property>
+    </bean>
+
+    <bean id="saleAccountService" class="com._520it.wms.service.impl.SaleAccountServiceImpl">
+        <property name="saleAccountMapper" ref="saleAccountMapper"></property>
+    </bean>
+
+    <bean id="systemMenuService" class="com._520it.wms.service.impl.SystemMenuServiceImpl">
+        <property name="systemMenuMapper" ref="systemMenuMapper"></property>
+    </bean>
+
+
+</beans>

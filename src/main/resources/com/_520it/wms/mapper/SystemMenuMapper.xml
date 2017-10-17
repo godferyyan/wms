@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.SystemMenuMapper">
+    <resultMap id="BaseResultMap" type="com._520it.wms.domain.SystemMenu">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="url" property="url" jdbcType="VARCHAR"/>
+        <result column="sn" property="sn" jdbcType="VARCHAR"/>
+        <association property="parent" columnPrefix="parent_" javaType="SystemMenu">
+            <id column="id" property="id" jdbcType="BIGINT"/>
+            <result column="name" property="name"/>
+        </association>
+    </resultMap>
+
+    <sql id="base_select">
+        child.id        id,
+        child.sn        sn,
+        child.name      name,
+        child.url       url,
+        child.parent_id parent_id,
+        parent.name     parent_name
+    </sql>
+    <sql id="base_from">
+        systemmenu child LEFT JOIN systemmenu parent ON child.parent_id = parent.id
+    </sql>
+    <sql id="base_where">
+        <where>
+            <choose>
+                <when test="parentId != -1">
+                    AND parent.id = #{parentId}
+                </when>
+                <otherwise>
+                    AND parent.id IS NULL
+                </otherwise>
+            </choose>
+        </where>
+    </sql>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from systemmenu
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <insert id="insert" parameterType="com._520it.wms.domain.SystemMenu" useGeneratedKeys="true" keyProperty="id">
+    insert into systemmenu (name, url, sn, 
+      parent_id)
+    values (#{name,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{sn,jdbcType=VARCHAR}, 
+      #{parent.id,jdbcType=BIGINT})
+  </insert>
+    <update id="updateByPrimaryKey" parameterType="com._520it.wms.domain.SystemMenu">
+    update systemmenu
+    set name = #{name,jdbcType=VARCHAR},
+      url = #{url,jdbcType=VARCHAR},
+      sn = #{sn,jdbcType=VARCHAR},
+      parent_id = #{parent.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="base_select"/>
+        from
+        <include refid="base_from"/>
+        where child.id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select
+        <include refid="base_select"/>
+        from
+        <include refid="base_from"/>
+    </select>
+
+    <select id="queryForCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM
+        <include refid="base_from"/>
+        <include refid="base_where"/>
+    </select>
+
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="base_select"/>
+        FROM
+        <include refid="base_from"/>
+        <include refid="base_where"/>
+        LIMIT #{beginIndex} , #{pageSize}
+    </select>
+    <select id="listChildMenus" resultType="com._520it.wms.domain.SystemMenu">
+        SELECT * FROM systemmenu WHERE parent_id IS NOT NULL
+    </select>
+
+    <select id="queryByRoleId" resultType="SystemMenu">
+        SELECT * FROM  systemmenu WHERE id IN
+        (
+          SELECT menu_id
+          FROM role_menu
+          WHERE role_id = #{id}
+        )
+    </select>
+    <select id="queryMenusBySn" resultType="java.util.Map">
+        SELECT
+          c.id        id,
+          c.parent_id pid,
+          c.name      name,
+          c.url       action
+        FROM systemmenu c LEFT JOIN systemmenu p ON c.parent_id = p.id
+        WHERE p.sn = #{parentSn};
+    </select>
+    <select id="queryMenusBySnAndEmpId" resultType="java.util.Map">
+            SELECT
+                  id,
+                  parent_id pid,
+                  name,
+                  url       action
+            FROM systemmenu
+            WHERE id IN
+                        (
+                          SELECT menu_id
+                          FROM role_menu
+                          WHERE role_id IN (
+                            SELECT role_id
+                            FROM employee_role
+                            WHERE employee_id = #{empId}
+                          )
+                        )
+                  AND
+                  parent_id =
+                        (
+                          SELECT id
+                          FROM systemmenu
+                          WHERE sn = #{parentSn}
+                        )
+    </select>
+
+</mapper>

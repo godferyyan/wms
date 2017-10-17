@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.StockOutcomeBillMapper">
+
+    <!--stockoutcomebill的resultMap-->
+    <resultMap id="BaseResultMap" type="com._520it.wms.domain.StockOutcomeBill">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="sn" property="sn" jdbcType="VARCHAR"/>
+        <result column="vdate" property="vdate" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="totalAmount" property="totalAmount" jdbcType="DECIMAL"/>
+        <result column="totalNumber" property="totalNumber" jdbcType="DECIMAL"/>
+        <result column="auditTime" property="auditTime" jdbcType="TIMESTAMP"/>
+        <result column="inputTime" property="inputTime" jdbcType="TIMESTAMP"/>
+        <association property="inputUser" javaType="Employee" columnPrefix="inputUser_">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+        </association>
+        <association property="auditor" javaType="Employee" columnPrefix="auditor_">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+        </association>
+        <association property="depot" javaType="Depot" columnPrefix="depot_">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+        </association>
+        <association property="client" javaType="Client" columnPrefix="client_">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+        </association>
+        <collection property="items" ofType="StockOutcomeBillItem" column="id" select="selectItemsByBillId"/>
+    </resultMap>
+
+    <!--stockoutcomebill的sql-->
+    <sql id="base_select">
+        bill.* , d.name depot_name , c.name client_name , inputUser.name inputUser_name, auditor.name auditor_name
+    </sql>
+    <sql id="base_from">
+        stockoutcomebill bill LEFT JOIN depot d ON bill.depot_id = d.id
+                           LEFT JOIN client c ON bill.client_id = c.id
+                           LEFT JOIN employee inputUser ON bill.inputUser_id = inputUser.id
+                           LEFT JOIN employee auditor ON bill.auditor_id = auditor.id
+    </sql>
+    <sql id="base_where">
+        <where>
+            <if test="beginDate != null">
+                AND bill.vdate &gt;= #{beginDate}
+            </if>
+            <if test="endDate != null">
+                AND bill.vdate &lt;= #{endDate}
+            </if>
+            <if test="depotId > 0">
+                AND bill.depot_id = #{depotId}
+            </if>
+            <if test="clientId > 0">
+                AND bill.client_id = #{clientId}
+            </if>
+            <if test="status > -1">
+                AND bill.status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <!--stockoutcomebill的sql-->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from stockoutcomebill
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <insert id="insert" parameterType="com._520it.wms.domain.StockOutcomeBill" useGeneratedKeys="true" keyProperty="id">
+    insert into stockoutcomebill (sn, vdate, status, 
+      totalAmount, totalNumber, auditTime, 
+      inputTime, inputUser_id, auditor_id, 
+      depot_id, client_id)
+    values (#{sn,jdbcType=VARCHAR}, #{vdate,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
+      #{totalAmount,jdbcType=DECIMAL}, #{totalNumber,jdbcType=DECIMAL}, #{auditTime,jdbcType=TIMESTAMP}, 
+      #{inputTime,jdbcType=TIMESTAMP}, #{inputUser.id,jdbcType=BIGINT}, #{auditor.id,jdbcType=BIGINT},
+      #{depot.id,jdbcType=BIGINT}, #{client.id,jdbcType=BIGINT})
+  </insert>
+    <update id="updateByPrimaryKey" parameterType="com._520it.wms.domain.StockOutcomeBill">
+    update stockoutcomebill
+    set sn = #{sn,jdbcType=VARCHAR},
+      vdate = #{vdate,jdbcType=TIMESTAMP},
+      totalAmount = #{totalAmount,jdbcType=DECIMAL},
+      totalNumber = #{totalNumber,jdbcType=DECIMAL},
+      depot_id = #{depot.id,jdbcType=BIGINT},
+      client_id = #{client.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+    <update id="audit">
+      UPDATE stockoutcomebill
+      SET auditTime = #{auditTime},
+      auditor_id = #{auditor.id},
+      status = #{status}
+      WHERE id = #{id}
+    </update>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+    select <include refid="base_select"/>
+    from <include refid="base_from"/>
+    where bill.id = #{id,jdbcType=BIGINT}
+  </select>
+
+    <select id="queryForCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM <include refid="base_from"/>
+        <include refid="base_where"/>
+    </select>
+
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT <include refid="base_select"/>
+        FROM <include refid="base_from"/>
+        <include refid="base_where"/>
+        LIMIT #{beginIndex} , #{pageSize}
+    </select>
+
+    <!--stockoutcomebillitem的baseResultMap-->
+    <resultMap id="BaseResultMap_Item" type="StockOutcomeBillItem">
+        <id property="id" column="id"/>
+        <result property="salePrice" column="salePrice"/>
+        <result property="number" column="number"/>
+        <result property="amount" column="amount"/>
+        <result property="remark" column="remark"/>
+        <association property="product" javaType="Product">
+            <id column="product_id" property="id"/>
+            <result column="product_name" property="name"/>
+            <association property="brand" javaType="Brand">
+                <id column="brand_id" property="id"/>
+                <result column="brand_name" property="name"/>
+            </association>
+        </association>
+    </resultMap>
+
+    <!--stockoutcomebillitem的base_sql-->
+    <sql id="base_item_select">
+        item.* , p.name product_name , b.name brand_name
+    </sql>
+
+    <sql id="base_item_from">
+        stockoutcomebillitem item LEFT JOIN product p ON item.product_id = p.id
+                               LEFT JOIN brand b ON p.brand_id = b.id
+    </sql>
+
+    <!--stockoutcomebillitem的sql-->
+    <select id="selectItemsByBillId" resultMap="BaseResultMap_Item">
+        SELECT <include refid="base_item_select"/>
+        FROM <include refid="base_item_from"/>
+        WHERE item.bill_id = #{billId}
+    </select>
+
+    <insert id="insertItem" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO stockoutcomebillitem(salePrice, number, amount, remark, product_id, bill_id)
+        VALUES(#{salePrice},#{number},#{amount},#{remark},#{product.id},#{stockOutcomeBill.id})
+    </insert>
+
+    <delete id="deleteItemsByBillId">
+        DELETE FROM stockoutcomebillitem
+        WHERE bill_id = #{billId}
+    </delete>
+
+</mapper>

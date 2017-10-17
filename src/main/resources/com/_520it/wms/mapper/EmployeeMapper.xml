@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com._520it.wms.mapper.EmployeeMapper">
+
+    <resultMap type="Employee" id="BaseResultMap">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="age" column="age"/>
+        <result property="admin" column="admin"/>
+        <association property="dept" javaType="Department">
+            <id property="id" column="dept_id"/>
+            <result property="name" column="dname"/>
+            <result property="sn" column="dsn"/>
+        </association>
+        <collection property="roles" ofType="Role" select="com._520it.wms.mapper.RoleMapper.queryByempId"
+                    column="id"></collection>
+    </resultMap>
+
+    <insert id="save" useGeneratedKeys="true" keyColumn="id"
+            keyProperty="id">
+		INSERT INTO employee
+		VALUES(null,#{name},#{password},#{email},#{age},#{admin},#{dept.id});
+    </insert>
+
+    <delete id="delete">
+		DELETE FROM employee WHERE id=#{id}
+	</delete>
+
+    <delete id="batchDelete">
+        DELETE FROM employee WHERE id IN
+        <foreach collection="list" item="item" close=")" open="(" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+    <update id="update">
+        UPDATE employee SET
+        name = #{name} ,
+        <if test="password != null and password != '' ">
+            password=#{password},
+        </if>
+        email=#{email},
+        age=#{age},
+        admin=#{admin},
+        dept_id=#{dept.id}
+        WHERE id =
+        #{id}
+    </update>
+
+    <select id="get" resultMap="BaseResultMap">
+		SELECT * FROM employee WHERE id = #{id}
+	</select>
+
+    <select id="listAll" resultMap="BaseResultMap">
+		SELECT * FROM employee
+	</select>
+
+    <sql id="condition_sql">
+        <where>
+            <if test="keyword != null and keyword != '' ">
+                AND (e.name LIKE concat('%',#{keyword},'%') OR e.email LIKE concat('%',#{keyword},'%'))
+            </if>
+            <if test="deptId != null and deptId != -1">
+                AND dept_id = #{deptId}
+            </if>
+        </where>
+    </sql>
+
+    <select id="queryForCount" resultType="int">
+        SELECT COUNT(e.id)
+        FROM employee e LEFT JOIN department d
+        ON e.dept_id = d.id
+        <include refid="condition_sql"/>
+    </select>
+
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT e.*,d.id did,d.name dname,d.sn dsn
+        FROM employee e LEFT JOIN department d ON e.dept_id = d.id
+        <include refid="condition_sql"/>
+        LIMIT #{beginIndex} , #{pageSize}
+    </select>
+
+    <delete id="deleteRelation">
+		DELETE FROM employee_role WHERE employee_id = #{id}
+	</delete>
+
+    <delete id="batchDeleteRelation">
+        DELETE FROM employee_role WHERE employee_id IN
+        <foreach collection="list" item="item" close=")" open="(" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <insert id="updateRelation">
+		INSERT INTO employee_role VALUES(#{empId},#{roleId})
+	</insert>
+
+    <select id="checkLogin" resultMap="BaseResultMap">
+		SELECT * FROM employee WHERE name = #{username} AND password = #{password}
+	</select>
+
+</mapper>

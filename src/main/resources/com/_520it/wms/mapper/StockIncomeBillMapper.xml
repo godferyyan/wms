@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.wms.mapper.StockIncomeBillMapper">
+    <!--StockIncomeBill的resultMap-->
+    <resultMap id="BaseResultMap" type="com._520it.wms.domain.StockIncomeBill">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="sn" property="sn" jdbcType="VARCHAR"/>
+        <result column="vdate" property="vdate" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="totalAmount" property="totalAmount" jdbcType="DECIMAL"/>
+        <result column="totalNumber" property="totalNumber" jdbcType="DECIMAL"/>
+        <result column="auditTime" property="auditTime" jdbcType="TIMESTAMP"/>
+        <result column="inputTime" property="inputTime" jdbcType="TIMESTAMP"/>
+        <association property="inputUser" javaType="Employee" columnPrefix="inputUser_">
+            <id column="id" property="id" jdbcType="BIGINT"/>
+            <result column="name" property="name" jdbcType="VARCHAR"/>
+        </association>
+        <association property="auditor" javaType="Employee" columnPrefix="auditor_">
+            <id column="id" property="id" jdbcType="BIGINT"/>
+            <result column="name" property="name" jdbcType="VARCHAR"/>
+        </association>
+        <association property="depot" javaType="Depot" columnPrefix="depot_">
+            <id column="id" property="id" jdbcType="BIGINT"/>
+            <result column="name" property="name" jdbcType="VARCHAR"/>
+        </association>
+        <collection property="items" ofType="StockIncomeBillItem" select="selectItemsByBillId" column="id"/>
+    </resultMap>
+
+    <!--StockIncomeBill的base_sql-->
+    <sql id="base_select">
+        bill.* , inputUser.name inputUser_name , auditor.name auditor_name, depot.name depot_name
+    </sql>
+    <sql id="base_from">
+        stockincomebill bill LEFT JOIN employee inputUser ON bill.inputUser_id = inputUser.id
+                    LEFT JOIN employee auditor  ON bill.auditor_id = auditor.id
+                    LEFT JOIN depot ON bill.depot_id = depot.id
+    </sql>
+    <sql id="base_where">
+        <where></where>
+    </sql>
+
+    <!--StockIncomeBill的sql-->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from stockincomebill
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <insert id="insert" parameterType="com._520it.wms.domain.StockIncomeBill" useGeneratedKeys="true" keyProperty="id">
+    insert into stockincomebill (sn, vdate, status, 
+      totalAmount, totalNumber, auditTime, 
+      inputTime, inputUser_id, auditor_id, 
+      depot_id)
+    values (#{sn,jdbcType=VARCHAR}, #{vdate,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
+      #{totalAmount,jdbcType=DECIMAL}, #{totalNumber,jdbcType=DECIMAL}, #{auditTime,jdbcType=TIMESTAMP}, 
+      #{inputTime,jdbcType=TIMESTAMP}, #{inputUser.id,jdbcType=BIGINT}, #{auditor.id,jdbcType=BIGINT}, 
+      #{depot.id,jdbcType=BIGINT})
+  </insert>
+    <update id="updateByPrimaryKey" parameterType="com._520it.wms.domain.StockIncomeBill">
+    update stockincomebill
+    set sn = #{sn,jdbcType=VARCHAR},
+      vdate = #{vdate,jdbcType=TIMESTAMP},
+      totalAmount = #{totalAmount,jdbcType=DECIMAL},
+      totalNumber = #{totalNumber,jdbcType=DECIMAL},
+      depot_id = #{depot.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+    <update id="audit">
+        UPDATE stockincomebill
+        SET auditTime = #{auditTime},
+            auditor_id = #{auditor.id},
+            status = #{status}
+        WHERE id = #{id}
+    </update>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="base_select"/>
+        from
+        <include refid="base_from"/>
+        where bill.id = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="queryForCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM
+        <include refid="base_from"/>
+        <include refid="base_where"/>
+    </select>
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="base_select"/>
+        FROM
+        <include refid="base_from"/>
+        <include refid="base_where"/>
+        LIMIT #{beginIndex} , #{pageSize}
+    </select>
+
+    <!--StockIncomeBillItem的resultMap-->
+    <resultMap id="BaseResultMap_Item" type="com._520it.wms.domain.StockIncomeBillItem">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="costPrice" property="costPrice" />
+        <result column="number" property="number" />
+        <result column="amount" property="amount" />
+        <result column="remark" property="remark" />
+        <association property="product" javaType="Product">
+            <id column="product_id" property="id" jdbcType="BIGINT"/>
+            <result column="product_name" property="name" jdbcType="VARCHAR"/>
+            <association property="brand" javaType="Brand">
+                <id column="brand_id" property="id" jdbcType="BIGINT"/>
+                <result column="brand_name" property="name" jdbcType="VARCHAR"/>
+            </association>
+        </association>
+    </resultMap>
+    <!--StockIncomeBillItem的base_sql-->
+    <sql id="base_item_select">
+        item.* , p.name product_name , b.name brand_name
+    </sql>
+    <sql id="base_item_from">
+        stockincomebillitem item LEFT JOIN product p ON item.product_id = p.id
+                              LEFT JOIN brand b ON p.brand_id = b.id
+    </sql>
+    <sql id="base_item_where">
+        <where></where>
+    </sql>
+    <!--StockIncomeBillItem的sql-->
+    <insert id="insertItems">
+        INSERT INTO stockincomebillitem(costPrice, number, amount, remark, product_id, bill_id)
+        VALUES(#{costPrice},#{number},#{amount},#{remark},#{product.id},#{stockIncomeBill.id})
+    </insert>
+    <select id="selectItemsByBillId" resultMap="BaseResultMap_Item">
+        SELECT <include refid="base_item_select"/>
+        FROM <include refid="base_item_from"/>
+        WHERE item.bill_id = #{billId}
+    </select>
+    <delete id="deleteItemsByBillId">
+        DELETE FROM stockincomebillitem
+        WHERE bill_id = #{billId}
+    </delete>
+</mapper>

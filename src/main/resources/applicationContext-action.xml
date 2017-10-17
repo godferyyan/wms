@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean id="employeeAction" class="com._520it.wms.web.action.EmployeeAction"
+          scope="prototype">
+        <property name="employeeService" ref="employeeService"></property>
+        <property name="departmentService" ref="departmentService"></property>
+        <property name="roleService" ref="roleService"></property>
+    </bean>
+
+    <bean id="departmentAction" class="com._520it.wms.web.action.DepartmentAction"
+          scope="prototype">
+        <property name="departmentService" ref="departmentService"></property>
+    </bean>
+
+    <bean id="permissionAction" class="com._520it.wms.web.action.PermissionAction"
+          scope="prototype">
+        <property name="permissionService" ref="permissionService"></property>
+    </bean>
+
+    <bean id="roleAction" class="com._520it.wms.web.action.RoleAction"
+          scope="prototype">
+        <property name="roleService" ref="roleService"></property>
+        <property name="permissionService" ref="permissionService"></property>
+        <property name="systemMenuService" ref="systemMenuService"></property>
+    </bean>
+
+    <bean id="loginAction" class="com._520it.wms.web.action.LoginAction"
+          scope="prototype">
+        <property name="employeeService" ref="employeeService"></property>
+    </bean>
+
+    <bean id="logoutAction" class="com._520it.wms.web.action.LogoutAction"
+          scope="prototype">
+    </bean>
+
+    <bean id="brandAction" class="com._520it.wms.web.action.BrandAction"
+          scope="prototype">
+        <property name="brandService" ref="brandService"></property>
+    </bean>
+    <bean id="clientAction" class="com._520it.wms.web.action.ClientAction"
+          scope="prototype">
+        <property name="clientService" ref="clientService"></property>
+    </bean>
+    <bean id="chartAction" class="com._520it.wms.web.action.ChartAction"
+          scope="prototype">
+        <property name="chartService" ref="chartService"></property>
+        <property name="supplierService" ref="supplierService"></property>
+        <property name="brandService" ref="brandService"></property>
+        <property name="clientService" ref="clientService"></property>
+    </bean>
+    <bean id="depotAction" class="com._520it.wms.web.action.DepotAction"
+          scope="prototype">
+        <property name="depotService" ref="depotService"></property>
+    </bean>
+    <bean id="supplierAction" class="com._520it.wms.web.action.SupplierAction"
+          scope="prototype">
+        <property name="supplierService" ref="supplierService"></property>
+    </bean>
+    <bean id="productAction" class="com._520it.wms.web.action.ProductAction"
+          scope="prototype">
+        <property name="productService" ref="productService"></property>
+        <property name="brandService" ref="brandService"></property>
+    </bean>
+
+    <bean id="orderBillAction" class="com._520it.wms.web.action.OrderBillAction"
+          scope="prototype">
+        <property name="orderBillService" ref="orderBillService"></property>
+        <property name="supplierService" ref="supplierService"></property>
+    </bean>
+
+    <bean id="stockIncomeBillAction" class="com._520it.wms.web.action.StockIncomeBillAction"
+          scope="prototype">
+        <property name="stockIncomeBillService" ref="stockIncomeBillService"></property>
+        <property name="depotService" ref="depotService"></property>
+    </bean>
+
+    <bean id="stockOutcomeBillAction" class="com._520it.wms.web.action.StockOutcomeBillAction"
+          scope="prototype">
+        <property name="stockOutcomeBillService" ref="stockOutcomeBillService"></property>
+        <property name="depotService" ref="depotService"></property>
+        <property name="clientService" ref="clientService"></property>
+    </bean>
+    <bean id="productStockAction" class="com._520it.wms.web.action.ProductStockAction"
+          scope="prototype">
+        <property name="productStockService" ref="productStockService"></property>
+        <property name="depotService" ref="depotService"></property>
+        <property name="brandService" ref="brandService"></property>
+    </bean>
+
+    <bean id="systemMenuAction" class="com._520it.wms.web.action.SystemMenuAction"
+          scope="prototype">
+        <property name="systemMenuService" ref="systemMenuService"></property>
+    </bean>
+
+</beans>

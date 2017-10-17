@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com._520it.wms.mapper.OrderBillMapper">
+
+    <!--OrderBill的BaseResultMap-->
+    <resultMap id="BaseResultMap" type="com._520it.wms.domain.OrderBill">
+        <id column="id" jdbcType="BIGINT" property="id" />
+        <result column="sn" jdbcType="VARCHAR" property="sn" />
+        <result column="vdate" jdbcType="TIMESTAMP" property="vdate" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <result column="totalAmount" jdbcType="DECIMAL" property="totalAmount" />
+        <result column="totalNumber" jdbcType="DECIMAL" property="totalNumber" />
+        <result column="auditTime" jdbcType="TIMESTAMP" property="auditTime" />
+        <result column="inputTime" jdbcType="TIMESTAMP" property="inputTime" />
+        <association columnPrefix="supplier_" javaType="Supplier" property="supplier">
+            <id column="id" jdbcType="BIGINT" property="id" />
+            <result column="name" property="name" />
+        </association>
+        <association columnPrefix="auditor_" javaType="Employee" property="auditor">
+            <id column="id" jdbcType="BIGINT" property="id" />
+            <result column="name" property="name" />
+        </association>
+        <association columnPrefix="inputUser_" javaType="Employee" property="inputUser">
+            <id column="id" jdbcType="BIGINT" property="id" />
+            <result column="name" property="name" />
+        </association>
+        <collection column="id" ofType="OrderBillItem" property="items" select="selectItemsByBillId" />
+    </resultMap>
+
+    <!--OrderBill的base_sql-->
+    <sql id="base_select">
+        bill.* , s.name supplier_name, inputUser.name inputUser_name , auditor.name auditor_name
+    </sql>
+    <sql id="base_from">
+        orderbill bill LEFT JOIN supplier s ON bill.supplier_id = s.id
+                    LEFT JOIN employee inputUser ON bill.inputUser_id = inputUser.id
+                    LEFT JOIN employee auditor ON bill.auditor_id = auditor.id
+    </sql>
+    <sql id="base_where">
+        <where>
+            <if test="beginDate != null">
+                AND bill.vdate &gt;= #{beginDate}
+            </if>
+            <if test="endDate != null">
+                AND bill.vdate &lt;= #{endDate}
+            </if>
+            <if test="supplierId &gt; 0">
+                AND bill.supplier_id = #{supplierId}
+            </if>
+            <if test="status &gt; -1">
+                AND bill.status = #{status}
+            </if>
+        </where>
+    </sql>
+
+
+    <!--OrderBill的sql-->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from orderbill
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <insert id="insert" keyProperty="id" parameterType="com._520it.wms.domain.OrderBill" useGeneratedKeys="true">
+    insert into orderbill (sn, vdate, status, 
+      totalAmount, totalNumber, auditTime, 
+      inputTime, inputUser_id, auditor_id, 
+      supplier_id)
+    values (#{sn,jdbcType=VARCHAR}, #{vdate,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
+      #{totalAmount,jdbcType=DECIMAL}, #{totalNumber,jdbcType=DECIMAL}, #{auditTime,jdbcType=TIMESTAMP}, 
+      #{inputTime,jdbcType=TIMESTAMP}, #{inputUser.id,jdbcType=BIGINT}, #{auditor.id,jdbcType=BIGINT},
+      #{supplier.id,jdbcType=BIGINT})
+  </insert>
+    <update id="updateByPrimaryKey" parameterType="com._520it.wms.domain.OrderBill">
+    update orderbill
+    set sn = #{sn,jdbcType=VARCHAR},
+      vdate = #{vdate,jdbcType=TIMESTAMP},
+      totalAmount = #{totalAmount,jdbcType=DECIMAL},
+      totalNumber = #{totalNumber,jdbcType=DECIMAL},
+      supplier_id = #{supplier.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="base_select" />
+        from
+        <include refid="base_from" />
+        where bill.id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="queryForCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM
+        <include refid="base_from" />
+        <include refid="base_where" />
+    </select>
+    <select id="queryForList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="base_select" />
+        FROM
+        <include refid="base_from" />
+        <include refid="base_where" />
+        LIMIT #{beginIndex} , #{pageSize}
+    </select>
+    <update id="audit">
+        UPDATE orderbill
+        SET
+        auditor_id = #{auditor.id},
+        auditTime = #{auditTime},
+        status = #{status}
+        WHERE
+        id = #{id}
+</update>
+
+    <!--OrderBillItem的resultMap-->
+    <resultMap id="BaseResultMap_Item" type="OrderBillItem">
+        <id column="id" property="id" />
+        <result column="costPrice" property="costPrice" />
+        <result column="amount" property="amount" />
+        <result column="number" property="number" />
+        <result column="remark" property="remark" />
+        <association javaType="Product" property="product">
+            <id column="product_id" property="id" />
+            <result column="product_name" property="name" />
+            <association javaType="Brand" property="brand">
+                <result column="brand_name" property="name" />
+            </association>
+        </association>
+    </resultMap>
+
+    <!--OrderBillItem的base_sql-->
+    <sql id="base_item_select">
+        item.* , p.name product_name , b.name brand_name
+    </sql>
+    <sql id="base_item_from">
+        orderbillitem item LEFT JOIN product p ON item.product_id = p.id
+                        LEFT JOIN brand b ON p.brand_id = b.id
+    </sql>
+    <sql id="base_item_where">
+        <where />
+    </sql>
+
+    <!--OrderBillItem的sql-->
+    <select id="selectItemsByBillId" resultMap="BaseResultMap_Item">
+        SELECT
+        <include refid="base_item_select" />
+        FROM
+        <include refid="base_item_from" />
+        WHERE item.bill_id = #{billId}
+    </select>
+
+    <insert id="insertItems" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO orderbillitem(costPrice, number, amount, remark, product_id, bill_id)
+        VALUES(#{costPrice}, #{number}, #{amount},#{remark},#{product.id},#{orderBill.id})
+    </insert>
+    <delete id="deleteItemsByBillId">
+        DELETE  FROM orderbillitem
+        WHERE bill_id = #{billId}
+    </delete>
+</mapper>

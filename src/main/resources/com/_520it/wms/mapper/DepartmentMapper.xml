@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com._520it.wms.mapper.DepartmentMapper">
+    <cache type="org.mybatis.caches.ehcache.EhcacheCache"/>
+
+	<resultMap type="Department" id="BaseResultMap">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="sn" column="sn" />
+	</resultMap>
+
+	<insert id="save" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id" flushCache="false">
+		INSERT INTO department
+		VALUES(null,#{name},#{sn})
+	</insert>
+
+	<delete id="delete">
+		DELETE FROM department WHERE id= #{id}
+	</delete>
+
+	<update id="update">
+		UPDATE department SET
+		name = #{name} ,
+		sn = #{sn}
+		WHERE id = #{id}
+	</update>
+
+	<select id="get" resultMap="BaseResultMap" useCache="true">
+		SELECT * FROM department WHERE id =
+		#{id}
+	</select>
+
+	<select id="listAll" resultMap="BaseResultMap" useCache="false">
+		SELECT * FROM department
+	</select>
+
+	<sql id="condition_sql">
+	</sql>
+
+	<select id="queryForCount" resultType="int" useCache="false">
+		SELECT COUNT(*)
+		FROM department
+		<include refid="condition_sql" />
+	</select>
+
+	<select id="queryForList" resultMap="BaseResultMap" useCache="false">
+		SELECT * FROM department
+		<include refid="condition_sql" />
+		LIMIT #{beginIndex} , #{pageSize}
+	</select>
+
+
+</mapper>

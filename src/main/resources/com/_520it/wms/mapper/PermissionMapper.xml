@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com._520it.wms.mapper.PermissionMapper">
+
+	<resultMap type="Permission" id="BaseResultMap">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="expression" column="expression" />
+	</resultMap>
+
+	<insert id="save" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id">
+		INSERT INTO permission
+		VALUES(null,#{name},#{expression})
+	</insert>
+
+	<delete id="delete">
+		DELETE FROM permission WHERE id= #{id}
+	</delete>
+
+
+	<select id="listAll" resultMap="BaseResultMap">
+		SELECT * FROM permission
+	</select>
+
+	<sql id="condition_sql">
+	</sql>
+
+	<select id="queryForCount" resultType="int">
+		SELECT COUNT(*)
+		FROM permission
+		<include refid="condition_sql" />
+	</select>
+
+	<select id="queryForList" resultMap="BaseResultMap">
+		SELECT * FROM permission
+		<include refid="condition_sql" />
+		LIMIT #{beginIndex} , #{pageSize}
+	</select>
+
+	<select id="queryByRoleId" resultMap="BaseResultMap">
+		SELECT * FROM permission
+		WHERE id IN
+		(
+		SELECT
+		permission_id FROM role_permission WHERE role_id =
+		#{roleId}
+		)
+	</select>
+
+</mapper>
